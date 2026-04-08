@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pegatron RMA - Two-Phase PoC Strategy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            display: inline-block;
+        }
+
+        .phase-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .phase-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .phase-card p {
+            line-height: 1.8;
+            margin-bottom: 10px;
+            opacity: 0.95;
+        }
+
+        .phase-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .question-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .question-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .question-box p {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .action-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+
+        .action-box h4 {
+            color: #1565c0;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .action-box ol {
+            margin-left: 20px;
+            color: #333;
+            line-height: 1.8;
+        }
+
+        .action-box li {
+            margin-bottom: 10px;
+        }
+
+        .success-banner {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .success-banner-icon {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 50px;
+            width: 3px;
+            height: calc(100% + 10px);
+            background: #667eea;
+        }
+
+        .timeline-dot {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 20px;
+            flex-shrink: 0;
+            z-index: 1;
+            font-size: 0.9em;
+        }
+
+        .timeline-content {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex: 1;
+        }
+
+        .timeline-content h4 {
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .timeline-content p {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .comparison-table tr:nth-child(1) {
+            background: #f8f9fa;
+        }
+
+        .comparison-table td {
+            vertical-align: top;
+        }
+
+        .priority-high {
+            background: #ffe5e5;
+            color: #d32f2f;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .phase-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .language-switcher {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="language-switcher">
+                <button class="lang-btn active" onclick="switchLanguage('zh')">中文</button>
+                <button class="lang-btn" onclick="switchLanguage('en')">English</button>
+            </div>
+
+            <!-- 中文标题 -->
+            <div id="header-zh">
+                <h1>🚀 Pegatron RMA 项目</h1>
+                <p>两阶段 PoC 策略讨论稿</p>
+            </div>
+
+            <!-- 英文标题 -->
+            <div id="header-en" class="hidden">
+                <h1>🚀 Pegatron RMA Project</h1>
+                <p>Two-Phase PoC Strategy Discussion</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- 核心洞察 - 中文 -->
+            <div id="insight-zh" class="section">
+                <div class="success-banner">
+                    <div class="success-banner-icon">💡</div>
+                    <div>
+                        <strong>核心洞察：务实的两阶段策略</strong><br/>
+                        虽然"深度诊断"是最核心诉求，但通过实地探访我们发现<span class="highlight">进出库工站</span>可能是最先落地的机会。建议采用两阶段 PoC 来逐步验证和建立信任。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 核心洞察 - 英文 -->
+            <div id="insight-en" class="section hidden">
+                <div class="success-banner">
+                    <div class="success-banner-icon">💡</div>
+                    <div>
+                        <strong>Key Insight: Pragmatic Two-Phase Strategy</strong><br/>
+                        While "Deep Diagnosis" is the core requirement, field visits suggest that <span class="highlight">Inbound/Outbound stations</span> may be the quickest to deploy. We propose a two-phase PoC to progressively validate and build trust.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 两阶段策略 - 中文 -->
+            <div id="phase-strategy-zh" class="section">
+                <h2 class="section-title">📋 两阶段 PoC 策略</h2>
+
+                <div class="phase-grid">
+                    <div class="phase-card">
+                        <h3>🚀 第一阶段：进出库工站</h3>
+                        <p><strong>时间框架：</strong> Weeks 3-10 (7 周)</p>
+                        <p><strong>目标：</strong> 快速获胜，验证 AI 视觉在 OQC/收货检验的价值</p>
+                        <p style="margin-top: 15px; opacity: 1; font-weight: 600;">关键特性：</p>
+                        <p>✓ 更简单的部署（常规相机）</p>
+                        <p>✓ 快速数据采集</p>
+                        <p>✓ 清晰的 ROI 验证</p>
+                        <p>✓ 建立内部信任</p>
+                    </div>
+
+                    <div class="phase-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <h3>🎯 第二阶段：深度诊断工站</h3>
+                        <p><strong>时间框架：</strong> Weeks 11-20 (10 周)</p>
+                        <p><strong>目标：</strong> 核心价值实现，替代 L2/L3 技师检查</p>
+                        <p style="margin-top: 15px; opacity: 1; font-weight: 600;">关键特性：</p>
+                        <p>✓ 多光谱/高精度成像</p>
+                        <p>✓ 最高 ROI（30-40% 人工成本削减）</p>
+                        <p>✓ 最复杂的集成</p>
+                        <p>✓ 最高精准度要求</p>
+                    </div>
+                </div>
+
+                <div class="action-box">
+                    <h4>📍 阶段之间的关键优势</h4>
+                    <p>
+                        第一阶段的成功为第二阶段奠定基础：硬件复用、团队学习、流程优化、Pegatron 信任建立。这样可以大幅降低第二阶段的风险和成本。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 两阶段策略 - 英文 -->
+            <div id="phase-strategy-en" class="section hidden">
+                <h2 class="section-title">📋 Two-Phase PoC Strategy</h2>
+
+                <div class="phase-grid">
+                    <div class="phase-card">
+                        <h3>🚀 Phase 1: Inbound/Outbound Stations</h3>
+                        <p><strong>Timeline:</strong> Weeks 3-10 (7 weeks)</p>
+                        <p><strong>Goal:</strong> Quick win, validate AI vision value in OQC/Receiving</p>
+                        <p style="margin-top: 15px; opacity: 1; font-weight: 600;">Key Features:</p>
+                        <p>✓ Simpler deployment (standard cameras)</p>
+                        <p>✓ Fast data collection</p>
+                        <p>✓ Clear ROI verification</p>
+                        <p>✓ Build internal trust</p>
+                    </div>
+
+                    <div class="phase-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <h3>🎯 Phase 2: Deep Diagnosis Station</h3>
+                        <p><strong>Timeline:</strong> Weeks 11-20 (10 weeks)</p>
+                        <p><strong>Goal:</strong> Core value realization, replace L2/L3 technicians</p>
+                        <p style="margin-top: 15px; opacity: 1; font-weight: 600;">Key Features:</p>
+                        <p>✓ Multispectral/high-precision imaging</p>
+                        <p>✓ Highest ROI (30-40% labor cost reduction)</p>
+                        <p>✓ Most complex integration</p>
+                        <p>✓ Highest accuracy requirements</p>
+                    </div>
+                </div>
+
+                <div class="action-box">
+                    <h4>📍 Key Advantage Between Phases</h4>
+                    <p>
+                        Phase 1 success sets the foundation for Phase 2: hardware reuse, team learning, process optimization, and Pegatron trust. This significantly reduces Phase 2 risk and cost.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 进出库工站详情 - 中文 -->
+            <div id="inbound-zh" class="section">
+                <h2 class="section-title">📦 第一阶段详情：进出库工站</h2>
+
+                <div class="action-box">
+                    <h4>当前工作流（人工）</h4>
+                    <p>❓ <strong>待调研：</strong> 现在人工在进出库工站做什么？</p>
+                    <p style="margin-top: 10px; color: #666;">
+                        预期可能包括：手动扫码、拍照、外观检查（液伤、碰撞、屏幕损伤等）、分类标记
+                    </p>
+                </div>
+
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">🔍 需要调研的关键问题</h3>
+
+                <div class="question-box">
+                    <h4>1️⃣ 进出库工站的具体需求是什么？</h4>
+                    <p>需要识别哪些类型的缺陷？（液伤、物理损伤、屏幕损伤、变色等）</p>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.95em;">→ 决定采集数据类型、模型训练方向</p>
+                </div>
+
+                <div class="question-box">
+                    <h4>2️⃣ 两个工站能复用的硬件是什么？</h4>
+                    <p>进出库和深度诊断是否共用 Jetson 边缘网关？是否都需要多光谱相机，还是进出库用普通相机？</p>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.95em;">→ 决定硬件采购清单、成本分配</p>
+                </div>
+
+                <div class="question-box">
+                    <h4>3️⃣ 进出库的现场部署复杂度如何？</h4>
+                    <p>是否需要改造传送带、安装光源、修改工作流？还是能独立部署在一个检查台上？</p>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.95em;">→ 决定 Pegatron 现场工程成本、时间表</p>
+                </div>
+            </div>
+
+            <!-- 进出库工站详情 - 英文 -->
+            <div id="inbound-en" class="section hidden">
+                <h2 class="section-title">📦 Phase 1 Details: Inbound/Outbound Stations</h2>
+
+                <div class="action-box">
+                    <h4>Current Workflow (Manual)</h4>
+                    <p>❓ <strong>To Research:</strong> What manual work is currently done at inbound/outbound stations?</p>
+                    <p style="margin-top: 10px; color: #666;">
+                        Likely includes: Manual barcode scanning, photography, visual inspection (liquid damage, impact, screen damage, etc.), classification & tagging
+                    </p>
+                </div>
+
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">🔍 Key Research Questions</h3>
+
+                <div class="question-box">
+                    <h4>1️⃣ What are the specific requirements for inbound/outbound stations?</h4>
+                    <p>What types of defects need to be identified? (Liquid damage, physical damage, screen damage, discoloration, etc.)</p>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.95em;">→ Determines data collection type, model training direction</p>
+                </div>
+
+                <div class="question-box">
+                    <h4>2️⃣ What hardware can be reused between the two stations?</h4>
+                    <p>Can inbound/outbound and deep diagnosis share a Jetson edge gateway? Do both need multispectral cameras, or can inbound/outbound use standard cameras?</p>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.95em;">→ Determines hardware procurement list, cost allocation</p>
+                </div>
+
+                <div class="question-box">
+                    <h4>3️⃣ How complex is on-site deployment for inbound/outbound?</h4>
+                    <p>Do we need to modify conveyor belts, install lighting, or change workflows? Or can it be deployed independently on an inspection table?</p>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.95em;">→ Determines Pegatron on-site engineering cost, timeline</p>
+                </div>
+            </div>
+
+            <!-- 深度诊断 - 中文 -->
+            <div id="diagnosis-zh" class="section">
+                <h2 class="section-title">🔬 第二阶段（核心）：深度诊断工站</h2>
+
+                <div class="action-box">
+                    <h4>为什么是深度诊断？</h4>
+                    <p>
+                        ✓ 最高 ROI（替代昂贵的 L2/L3 技师）<br/>
+                        ✓ 最多数据（现有检查记录、损伤图库）<br/>
+                        ✓ 最清晰的价值（降低漏检率 5-8% → <1%）<br/>
+                        ✓ 独立验证（不依赖其他系统）
+                    </p>
+                </div>
+
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">⏳ 时间表</h3>
+                <p style="color: #666;">
+                    <strong>前提条件：</strong> 第一阶段 PoC 成功（Week 10）→ 第二阶段启动（Week 11）<br/>
+                    <strong>预期时间：</strong> 10 周（高精度模型开发 + 现场验证）<br/>
+                    <strong>目标完成：</strong> Week 20 或更早
+                </p>
+            </div>
+
+            <!-- 深度诊断 - 英文 -->
+            <div id="diagnosis-en" class="section hidden">
+                <h2 class="section-title">🔬 Phase 2 (Core): Deep Diagnosis Station</h2>
+
+                <div class="action-box">
+                    <h4>Why Deep Diagnosis?</h4>
+                    <p>
+                        ✓ Highest ROI (replaces expensive L2/L3 technicians)<br/>
+                        ✓ Most data available (existing inspection records, damage libraries)<br/>
+                        ✓ Clearest value (reduce missed defects 5-8% → <1%)<br/>
+                        ✓ Independent validation (doesn't depend on other systems)
+                    </p>
+                </div>
+
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">⏳ Timeline</h3>
+                <p style="color: #666;">
+                    <strong>Prerequisites:</strong> Phase 1 PoC success (Week 10) → Phase 2 starts (Week 11)<br/>
+                    <strong>Expected duration:</strong> 10 weeks (high-precision model development + field validation)<br/>
+                    <strong>Target completion:</strong> Week 20 or earlier
+                </p>
+            </div>
+
+            <!-- 供应链评估 - 中文 -->
+            <div id="supply-chain-zh" class="section">
+                <h2 class="section-title">🛒 供应链评估方向</h2>
+
+                <h3 style="color: #333; margin-bottom: 15px;">国内厂商评估优先顺序</h3>
+
+                <div class="action-box">
+                    <h4>评估维度（按重要性）</h4>
+                    <ol>
+                        <li><strong>交期可靠性：</strong> 能否在 Apr 15 前出货进出库硬件，确保 Week 3 部署？</li>
+                        <li><strong>成本：</strong> 第一阶段采购成本预算约 $30-50K，第二阶段 $50-80K</li>
+                        <li><strong>已有能力：</strong> 是否有现成的 AI 模型能力（YOLOv8、分类、缺陷检测等）？</li>
+                        <li><strong>集成支持：</strong> 能否提供 Jetson + PLC 集成的技术支持？</li>
+                    </ol>
+                </div>
+
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">❓ 待启动的采购任务</h3>
+                <p style="color: #666;">
+                    供应链快速评估（Apr 10-12）：需要联系 3-5 个国内厂商，包括相机、网关、集成商。
+                </p>
+            </div>
+
+            <!-- 供应链评估 - 英文 -->
+            <div id="supply-chain-en" class="section hidden">
+                <h2 class="section-title">🛒 Supply Chain Assessment Direction</h2>
+
+                <h3 style="color: #333; margin-bottom: 15px;">Domestic Vendor Evaluation Priority Order</h3>
+
+                <div class="action-box">
+                    <h4>Evaluation Criteria (By Importance)</h4>
+                    <ol>
+                        <li><strong>Delivery Reliability:</strong> Can we ship inbound/outbound hardware by Apr 15 for Week 3 deployment?</li>
+                        <li><strong>Cost:</strong> Phase 1 procurement budget ~$30-50K, Phase 2 ~$50-80K</li>
+                        <li><strong>Existing Capabilities:</strong> Do they have ready-made AI model capabilities (YOLOv8, classification, defect detection)?</li>
+                        <li><strong>Integration Support:</strong> Can they support Jetson + PLC integration?</li>
+                    </ol>
+                </div>
+
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">❓ Procurement Tasks to Launch</h3>
+                <p style="color: #666;">
+                    Rapid supply chain assessment (Apr 10-12): Contact 3-5 domestic vendors including cameras, gateways, and integrators.
+                </p>
+            </div>
+
+            <!-- 工作计划 - 中文 -->
+            <div id="workplan-zh" class="section">
+                <h2 class="section-title">📅 即时工作计划 (Phase 0 - 最后 1 周)</h2>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot">1</div>
+                        <div class="timeline-content">
+                            <h4>Apr 10: 启动招聘 & 供应链快速评估</h4>
+                            <p><strong>任务：</strong> 发布 ML/Systems Engineer JD，联系 3-5 个国内厂商获取初步报价</p>
+                            <p><strong>交付：</strong> 招聘启动，厂商反馈清单</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">2</div>
+                        <div class="timeline-content">
+                            <h4>Apr 12: Pegatron 正式启动会议</h4>
+                            <p><strong>议题：</strong> 两阶段策略确认、进出库需求详细讨论、现场访问日期确定</p>
+                            <p><strong>交付：</strong> 正式启动会议纪要、Pegatron 需求确认单</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">3</div>
+                        <div class="timeline-content">
+                            <h4>Apr 15: 完成供应链对标 & PoC 规范冻结</h4>
+                            <p><strong>任务：</strong> 整合厂商反馈，完成成本/交期对标，锁定 Phase 1 硬件方案</p>
+                            <p><strong>交付：</strong> docs/02_SUPPLY_CHAIN_ANALYSIS.md，docs/03_POC_SPECIFICATION.md</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">4</div>
+                        <div class="timeline-content">
+                            <h4>Apr 20: 组建 PoC 团队 & 启动现场数据采集</h4>
+                            <p><strong>任务：</strong> 团队成员正式启动，Pegatron 现场访问，采集样本数据</p>
+                            <p><strong>交付：</strong> 样本数据集（100+ 图像），初步数据分析报告</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 工作计划 - 英文 -->
+            <div id="workplan-en" class="section hidden">
+                <h2 class="section-title">📅 Immediate Action Plan (Phase 0 - Final Week)</h2>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot">1</div>
+                        <div class="timeline-content">
+                            <h4>Apr 10: Launch Recruitment & Supply Chain Assessment</h4>
+                            <p><strong>Tasks:</strong> Post ML/Systems Engineer JD, contact 3-5 domestic vendors for initial quotes</p>
+                            <p><strong>Deliverable:</strong> Recruitment started, vendor feedback list</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">2</div>
+                        <div class="timeline-content">
+                            <h4>Apr 12: Formal Pegatron Kickoff Meeting</h4>
+                            <p><strong>Topics:</strong> Two-phase strategy confirmation, detailed inbound/outbound requirements, site visit scheduling</p>
+                            <p><strong>Deliverable:</strong> Kickoff meeting minutes, Pegatron requirement confirmation</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">3</div>
+                        <div class="timeline-content">
+                            <h4>Apr 15: Complete Supply Chain Comparison & Freeze PoC Spec</h4>
+                            <p><strong>Tasks:</strong> Consolidate vendor feedback, complete cost/delivery comparison, lock Phase 1 hardware</p>
+                            <p><strong>Deliverable:</strong> docs/02_SUPPLY_CHAIN_ANALYSIS.md, docs/03_POC_SPECIFICATION.md</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-dot">4</div>
+                        <div class="timeline-content">
+                            <h4>Apr 20: Form PoC Team & Launch On-Site Data Collection</h4>
+                            <p><strong>Tasks:</strong> Team members officially start, Pegatron site visit, collect sample data</p>
+                            <p><strong>Deliverable:</strong> Sample dataset (100+ images), preliminary data analysis report</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 风险与缓解 - 中文 -->
+            <div id="risks-zh" class="section">
+                <h2 class="section-title">⚠️ 关键风险与缓解措施</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>风险</th>
+                                <th>影响</th>
+                                <th>缓解措施</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>供应链交期延误</strong></td>
+                                <td>延迟 Phase 1 启动</td>
+                                <td>Apr 10 立即启动供应链评估；准备 B 方案；提前下 PO</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pegatron 需求不清晰</strong></td>
+                                <td>返工、范围蔓延</td>
+                                <td>Apr 12 启动需求澄清工作坊；生成详细的需求文档</td>
+                            </tr>
+                            <tr>
+                                <td><strong>团队招聘困难</strong></td>
+                                <td>人力资源短缺</td>
+                                <td>并行启动招聘（Apr 10）；准备外包替代方案</td>
+                            </tr>
+                            <tr>
+                                <td><strong>硬件部署问题</strong></td>
+                                <td>现场集成困难</td>
+                                <td>提前进行虚拟环境测试；Pegatron IT 支持确认</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 风险与缓解 - 英文 -->
+            <div id="risks-en" class="section hidden">
+                <h2 class="section-title">⚠️ Key Risks & Mitigation</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Risk</th>
+                                <th>Impact</th>
+                                <th>Mitigation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Supply chain delivery delays</strong></td>
+                                <td>Delayed Phase 1 launch</td>
+                                <td>Start supply chain assessment immediately (Apr 10); prepare Plan B; place PO early</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Unclear Pegatron requirements</strong></td>
+                                <td>Rework, scope creep</td>
+                                <td>Launch requirements workshop (Apr 12); generate detailed requirement documents</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Recruitment challenges</strong></td>
+                                <td>Resource shortage</td>
+                                <td>Launch recruitment in parallel (Apr 10); prepare outsourcing alternatives</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hardware deployment issues</strong></td>
+                                <td>On-site integration difficulties</td>
+                                <td>Pre-test in virtual environment; confirm Pegatron IT support</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 后续建议 - 中文 -->
+            <div id="next-zh" class="section">
+                <h2 class="section-title">📌 给伙伴的建议</h2>
+
+                <div class="action-box">
+                    <h4>讨论重点</h4>
+                    <ol>
+                        <li><strong>策略确认：</strong> 是否同意两阶段 PoC 方案？进出库作为 Phase 1 是否可行？</li>
+                        <li><strong>进出库需求：</strong> 详细讨论现在的人工流程，确认 AI 要解决的具体问题</li>
+                        <li><strong>硬件与集成：</strong> 两个工站的硬件能否复用？Pegatron 现场的制约因素有哪些？</li>
+                        <li><strong>时间表确认：</strong> Pegatron 现场访问何时？需要采集的数据量有多大？</li>
+                        <li><strong>团队与预算：</strong> 确认招聘计划、预算批准、里程碑付款条件</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- 后续建议 - 英文 -->
+            <div id="next-en" class="section hidden">
+                <h2 class="section-title">📌 Suggestions for Partners</h2>
+
+                <div class="action-box">
+                    <h4>Discussion Focus Points</h4>
+                    <ol>
+                        <li><strong>Strategy Confirmation:</strong> Do we agree with the two-phase PoC? Is inbound/outbound feasible for Phase 1?</li>
+                        <li><strong>Inbound/Outbound Requirements:</strong> Detailed discussion of current manual processes, confirm specific problems AI should solve</li>
+                        <li><strong>Hardware & Integration:</strong> Can hardware be shared between stations? What are Pegatron's on-site constraints?</li>
+                        <li><strong>Timeline Confirmation:</strong> When for Pegatron site visits? How much data needs to be collected?</li>
+                        <li><strong>Team & Budget:</strong> Confirm recruitment plan, budget approval, milestone payment terms</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <!-- 中文footer -->
+            <div id="footer-zh">
+                <p>
+                    <strong>Pegatron RMA 项目 - 两阶段 PoC 策略讨论稿</strong><br/>
+                    项目负责人: Kaige Liao | 日期: 2026-04-08<br/>
+                    <a href="https://github.com/kaigeliao2018/pegatron-rma-project" target="_blank" style="color: #667eea; text-decoration: none;">
+                        GitHub 项目仓库 →
+                    </a>
+                </p>
+            </div>
+
+            <!-- 英文footer -->
+            <div id="footer-en" class="hidden">
+                <p>
+                    <strong>Pegatron RMA Project - Two-Phase PoC Strategy Discussion</strong><br/>
+                    Project Lead: Kaige Liao | Date: 2026-04-08<br/>
+                    <a href="https://github.com/kaigeliao2018/pegatron-rma-project" target="_blank" style="color: #667eea; text-decoration: none;">
+                        GitHub Project Repository →
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchLanguage(lang) {
+            const btns = document.querySelectorAll('.lang-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const zhElements = [
+                'header-zh', 'insight-zh', 'phase-strategy-zh', 'inbound-zh', 
+                'diagnosis-zh', 'supply-chain-zh', 'workplan-zh', 'risks-zh', 
+                'next-zh', 'footer-zh'
+            ];
+
+            const enElements = [
+                'header-en', 'insight-en', 'phase-strategy-en', 'inbound-en', 
+                'diagnosis-en', 'supply-chain-en', 'workplan-en', 'risks-en', 
+                'next-en', 'footer-en'
+            ];
+
+            if (lang === 'zh') {
+                zhElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.remove('hidden');
+                });
+                enElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                });
+                document.documentElement.lang = 'zh-CN';
+            } else {
+                zhElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                });
+                enElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.remove('hidden');
+                });
+                document.documentElement.lang = 'en';
+            }
+
+            localStorage.setItem('preferredLanguage', lang);
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const preferredLang = localStorage.getItem('preferredLanguage') || 'zh';
+            const langBtns = document.querySelectorAll('.lang-btn');
+            
+            if (preferredLang === 'en') {
+                langBtns[1].click();
+            } else {
+                langBtns[0].click();
+            }
+        });
+    </script>
+</body>
+</html>
