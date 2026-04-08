@@ -1,0 +1,193 @@
+# Pegatron RMA Project - .gitignore
+
+# ============================================================================
+# Python & Virtual Environments
+# ============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ============================================================================
+# Node.js & Frontend
+# ============================================================================
+node_modules/
+npm-debug.log
+yarn-error.log
+*.yarn-integrity
+.next/
+out/
+build/
+dist/
+
+# ============================================================================
+# ML Models & Large Data Files (NOT pushing to Git)
+# ============================================================================
+# Models directory structure exists, but *.pt, *.pth, *.h5 files excluded
+software/models/**/*.pt
+software/models/**/*.pth
+software/models/**/*.h5
+software/models/**/*.onnx
+software/models/**/*.pb
+
+# Dataset directories (data is too large; document paths only)
+data/
+datasets/
+*.zip
+*.tar.gz
+*.tgz
+
+# ============================================================================
+# IDE & Editor Files
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+*.sublime-workspace
+*.sublime-project
+
+# ============================================================================
+# Jupyter Notebooks & Outputs
+# ============================================================================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+*.ipynb
+
+# ============================================================================
+# Sensitive & Runtime Data
+# ============================================================================
+# API keys, tokens, credentials
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+secrets/
+*.pem
+*.key
+*.crt
+
+# Database files (local SQLite, etc.)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs & Temporary Files
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# ============================================================================
+# OS-Specific Files
+# ============================================================================
+Thumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# ============================================================================
+# Docker & Container
+# ============================================================================
+.dockerignore
+docker-compose.override.yml
+
+# ============================================================================
+# Hardware & Configuration Files (Site-Specific)
+# ============================================================================
+# Local PLC calibration files, camera configs (document expected paths, don't commit)
+hardware/calibration/local_*
+hardware/configs/*.local.yml
+field-notes/site_specific/
+
+# ============================================================================
+# Build Outputs
+# ============================================================================
+build/
+dist/
+*.o
+*.a
+*.lib
+*.dll
+*.dylib
+*.exe
+
+# ============================================================================
+# Coverage Reports
+# ============================================================================
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# ============================================================================
+# Generated Documentation
+# ============================================================================
+site/
+docs/_build/
+.jekyll-cache/
+
+# ============================================================================
+# Project-Specific Exclusions
+# ============================================================================
+# Pegatron site-specific data (keep structure, exclude sensitive files)
+field-notes/site_specific_2026_*/
+# Vendor quotes & pricing (confidential, document in decision_log instead)
+docs/vendor_quotes/
+# Performance test results (large, not critical to preserve)
+benchmarks/results/
+
+# ============================================================================
+# Allowed Exceptions (Whitelisting)
+# ============================================================================
+# Keep these even if they match exclusions above:
+!software/models/.gitkeep
+!software/models/README.md
+!data/.gitkeep
+!data/README.md
+!logs/.gitkeep
+!tmp/.gitkeep
+!field-notes/site_specific/.gitkeep
+!.gitignore
+!.github/
+!.github/workflows/
+!.github/ISSUE_TEMPLATE/
+
+# ============================================================================
+# Notes
+# ============================================================================
+# To check what's ignored:  git check-ignore -v <filename>
+# To force-add ignored file: git add -f <filename>
+# To untrack committed file: git rm --cached <filename>
