@@ -168,6 +168,8 @@ field-notes/site_specific_2026_*/
 docs/vendor_quotes/
 # Performance test results (large, not critical to preserve)
 benchmarks/results/
+# Gemini 起草的项目编年史草稿（参考用，不入仓）
+gemini草案/
 
 # ============================================================================
 # Allowed Exceptions (Whitelisting)
